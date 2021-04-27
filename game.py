@@ -15,5 +15,3 @@ def mines():
     for i in range(len(minelist)-1):
       if pos == minelist[i]:
         minelist.remove[i]
-
-mines()
