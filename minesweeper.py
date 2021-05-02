@@ -48,6 +48,8 @@ class Game(tk.Frame):
         self.tile_states = [[0] * self.width for _ in range(self.height)]
         self.number_mines = number_mines
         self.mine_positions = []
+        self.flag_positions = []
+        self.discovered_tiles = []
 
         self.tile_images = {}
         tiles = ['tile', 'flag', 'bomb', 'hidden', 'wrong', '0', '1', '2', '3', '4']
@@ -69,17 +71,30 @@ class Game(tk.Frame):
             self.mine_positions = generate_mines(self.width, self.height, self.number_mines, excluded=start_area)
             self.count_adjacent_mines()
 
-        if [x, y] in self.mine_positions:
-            self.place_tile(x, y, self.tile_images['bomb'])
-        else:
-            self.reveal_tiles(x, y, scanned=[])
+        if [x, y] not in self.flag_positions:
+            if [x, y] in self.mine_positions:
+                self.place_tile(x, y, self.tile_images['bomb'])
+                print("You lose!")
+            else:
+                self.reveal_tiles(x, y)
+                if (self.width * self.height) - len(self.discovered_tiles) == self.number_mines:
+                    print("You win! Hooray!")
 
     def handle_right_click(self, event):
         x = event.x // self.tile_size
         y = event.y // self.tile_size
 
         if self.move_counter >= 1:
-            self.place_tile(x, y, self.tile_images['flag'])
+            self.toggle_flag(x, y)
+
+    def toggle_flag(self, x, y):
+        if [x, y] not in self.discovered_tiles:
+            if [x, y] not in self.flag_positions:
+                self.flag_positions.append([x, y])
+                self.place_tile(x, y, self.tile_images['flag'])
+            else:
+                self.flag_positions.remove([x, y])
+                self.place_tile(x, y, self.tile_images['tile'])
 
     def count_adjacent_mines(self):
         for m in self.mine_positions:
@@ -89,17 +104,17 @@ class Game(tk.Frame):
                     if (0 <= x + horz < self.width) and (0 <= y + vert < self.height):
                         self.tile_states[y + vert][x + horz] += 1
 
-    def reveal_tiles(self, x, y, scanned):
+    def reveal_tiles(self, x, y):
         i = str(self.tile_states[y][x])
         self.place_tile(x, y, self.tile_images[i])
-        scanned.append([x, y])
+        self.discovered_tiles.append([x, y])
 
-        if not self.tile_states[y][x] > 0:
+        if self.tile_states[y][x] == 0:
             for vert in range(-1, 2):
                 for horz in range(-1, 2):
                     if (0 <= x + horz < self.width) and (0 <= y + vert < self.height):
-                        if [x + horz, y + vert] not in scanned:
-                            self.reveal_tiles(x + horz, y + vert, scanned)
+                        if [x + horz, y + vert] not in self.discovered_tiles:
+                            self.reveal_tiles(x + horz, y + vert)
 
         return
 
