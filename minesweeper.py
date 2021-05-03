@@ -105,16 +105,17 @@ class Game(tk.Frame):
                         self.tile_states[y + vert][x + horz] += 1
 
     def reveal_tiles(self, x, y):
-        i = str(self.tile_states[y][x])
-        self.place_tile(x, y, self.tile_images[i])
-        self.discovered_tiles.append([x, y])
+        if not [x, y] in self.discovered_tiles:
+            i = str(self.tile_states[y][x])
+            self.place_tile(x, y, self.tile_images[i])
+            self.discovered_tiles.append([x, y])
 
-        if self.tile_states[y][x] == 0:
-            for vert in range(-1, 2):
-                for horz in range(-1, 2):
-                    if (0 <= x + horz < self.width) and (0 <= y + vert < self.height):
-                        if [x + horz, y + vert] not in self.discovered_tiles:
-                            self.reveal_tiles(x + horz, y + vert)
+            if self.tile_states[y][x] == 0:
+                for vert in range(-1, 2):
+                    for horz in range(-1, 2):
+                        if (0 <= x + horz < self.width) and (0 <= y + vert < self.height):
+                            if [x + horz, y + vert] not in self.discovered_tiles:
+                                self.reveal_tiles(x + horz, y + vert)
 
         return
 
