@@ -1,2 +1,2 @@
 language = "bash"
-run = "python game.py"
+run = "python minesweeper.py"
