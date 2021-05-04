@@ -45,7 +45,7 @@ class Game(tk.Frame):
         self.width, self.height = width, height
         self.tile_size = tile_size
 
-        self.tile_states = [[0] * self.width for _ in range(self.height)]
+        self.tile_states = [[0] * self.width for _ in range(self.height)] # Matrix which contains the number of adjacent mines
         self.number_mines = number_mines
         self.mine_positions = []
         self.flag_positions = []
@@ -87,7 +87,16 @@ class Game(tk.Frame):
             self.toggle_flag(x, y)
 
     def toggle_flag(self, x, y):
-        pass
+    
+      if [x, y] not in self.discovered_tiles:
+
+        if [x, y] in self.flag_positions and (0 <= x < self.width) and (0 <= y < self.height):
+          self.place_tile(x, y, self.tile_images['tile'])
+          self.flag_positions.remove([x,y])
+
+        else:
+          self.place_tile(x, y, self.tile_images['flag'])
+          self.flag_positions.append([x,y])
 
     def count_adjacent_mines(self):
         for m in self.mine_positions:
