@@ -52,7 +52,7 @@ class Game(tk.Frame):
         self.discovered_tiles = []
 
         self.tile_images = {}
-        tiles = ['tile', 'flag', 'bomb', 'hidden', 'wrong', '0', '1', '2', '3', '4']
+        tiles = ['tile', 'flag', 'bomb', 'hidden', 'wrong', '0', '1', '2', '3', '4', '5', '6', '7', '8']
         for t in tiles:
             self.tile_images[t] = ImageTk.PhotoImage(
                 Image.open('textures/' + t + '.png')
