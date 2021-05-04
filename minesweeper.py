@@ -45,7 +45,8 @@ class Game(tk.Frame):
         self.width, self.height = width, height
         self.tile_size = tile_size
 
-        self.tile_states = [[0] * self.width for _ in range(self.height)] # Matrix which contains the number of adjacent mines
+        # Matrix which contains the number of adjacent mines
+        self.tile_states = [[0] * self.width for _ in range(self.height)]
         self.number_mines = number_mines
         self.mine_positions = []
         self.flag_positions = []
@@ -88,15 +89,16 @@ class Game(tk.Frame):
 
     def toggle_flag(self, x, y):
     
-      if [x, y] not in self.discovered_tiles: # If the tile clicked on not already discovered
+        if [x, y] not in self.discovered_tiles:  # If the tile clicked on not already discovered
 
-        if [x, y] in self.flag_positions and (0 <= x < self.width) and (0 <= y < self.height): # If the tile already has a flag on it and isn't out of the canvas
-          self.place_tile(x, y, self.tile_images['tile'])
-          self.flag_positions.remove([x,y]) # Make the tile a regular 'tile' and remove from flag positions
+            # If the tile already has a flag on it and isn't out of the canvas
+            if [x, y] in self.flag_positions and (0 <= x < self.width) and (0 <= y < self.height):
+                self.place_tile(x, y, self.tile_images['tile'])
+                self.flag_positions.remove([x, y])  # Make the tile a regular 'tile' and remove from flag positions
 
-        else: # Otherwise, if the tile doesn't have a flag on it 
-          self.place_tile(x, y, self.tile_images['flag'])
-          self.flag_positions.append([x,y]) # Place a flag and add to flag positions
+            else:  # Otherwise, if the tile doesn't have a flag on it
+                self.place_tile(x, y, self.tile_images['flag'])
+                self.flag_positions.append([x, y])  # Place a flag and add to flag positions
 
     def count_adjacent_mines(self):
         for m in self.mine_positions:
