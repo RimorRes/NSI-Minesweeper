@@ -78,8 +78,9 @@ class Game(tk.Frame):
                 print("You lose!")
             else:
                 self.reveal_tiles(x, y)
-                if len(self.discovered_tiles) + self.number_mines == self.width * self.height: # If all tiles which aren't mines are discovered
-                  print("You win!")
+                # If all tiles which aren't mines are discovered
+                if len(self.discovered_tiles) + self.number_mines == self.width * self.height:
+                    print("You win!")
 
     def handle_right_click(self, event):
         x = event.x // self.tile_size
