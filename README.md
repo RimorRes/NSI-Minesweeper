@@ -1,4 +1,4 @@
-<div align="center"><img src="https://user-images.githubusercontent.com/53187347/117466202-bb54ad80-af52-11eb-970f-654dc56cd1b8.png" width="600"/></div>
+<div align="center"><img src="https://user-images.githubusercontent.com/53187347/117501520-6f1f6280-af7e-11eb-9ba7-7545c26b3f0c.png" width="600"/></div>
 
 # NSI-Minesweeper
 
