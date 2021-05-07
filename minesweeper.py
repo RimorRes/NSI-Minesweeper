@@ -45,6 +45,7 @@ class Game(tk.Frame):
         self.width, self.height = width, height
         self.tile_size = tile_size
 
+        # Matrix which contains the number of adjacent mines
         self.tile_states = [[0] * self.width for _ in range(self.height)]
         self.number_mines = number_mines
         self.mine_positions = []
@@ -52,7 +53,7 @@ class Game(tk.Frame):
         self.discovered_tiles = []
 
         self.tile_images = {}
-        tiles = ['tile', 'flag', 'bomb', 'hidden', 'wrong', '0', '1', '2', '3', '4']
+        tiles = ['tile', 'flag', 'bomb', 'hidden', 'wrong', '0', '1', '2', '3', '4', '5', '6', '7', '8']
         for t in tiles:
             self.tile_images[t] = ImageTk.PhotoImage(
                 Image.open('textures/' + t + '.png')
@@ -77,7 +78,8 @@ class Game(tk.Frame):
                 print("You lose!")
             else:
                 self.reveal_tiles(x, y)
-                pass
+                if len(self.discovered_tiles) + self.number_mines == self.width * self.height: # If all tiles which aren't mines are discovered
+                  print("You win!")
 
     def handle_right_click(self, event):
         x = event.x // self.tile_size
@@ -87,7 +89,17 @@ class Game(tk.Frame):
             self.toggle_flag(x, y)
 
     def toggle_flag(self, x, y):
-        pass
+    
+        if [x, y] not in self.discovered_tiles:  # If the tile clicked on not already discovered
+
+            # If the tile already has a flag on it and isn't out of the canvas
+            if [x, y] in self.flag_positions and (0 <= x < self.width) and (0 <= y < self.height):
+                self.place_tile(x, y, self.tile_images['tile'])
+                self.flag_positions.remove([x, y])  # Make the tile a regular 'tile' and remove from flag positions
+
+            else:  # Otherwise, if the tile doesn't have a flag on it
+                self.place_tile(x, y, self.tile_images['flag'])
+                self.flag_positions.append([x, y])  # Place a flag and add to flag positions
 
     def count_adjacent_mines(self):
         for m in self.mine_positions:
