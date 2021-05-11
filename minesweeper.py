@@ -26,16 +26,29 @@ def delimit_start_area(start_x, start_y, width, height, radius=1):
                 area.append([x, y])
     return area
 
+#gui = tk.Tk()
+#diff = tk.Label(gui, text = "Difficulty")
+#diff.pack()
+#easy = tk.Button(gui, text = "Easy", command = gui.destroy)
+#easy.pack()
+#medium = tk.Button(gui, text = "Medium", command = gui.destroy)
+#medium.pack()
+#hard = tk.Button(gui, text = "Hard", command = gui.destroy)
+#hard.pack()
+#gui.mainloop
+
 
 class Game(tk.Frame):
 
-    def __init__(self, master, width, height, tile_size, number_mines):
+    def __init__(self, master, width, height, geometry_width, geometry_height, tile_size, number_mines):
         super().__init__()
         self.master = master
         self.master.title("Minesweeper")
         self.pack(side=tk.BOTTOM)
 
-        self.canvas = tk.Canvas(self, width=400 + 4, height=650 + 4)
+        self.gwidth, self.gheight = geometry_width, geometry_height
+
+        self.canvas = tk.Canvas(self, width= self.gwidth - 76, height= self.gheight - 76)
         self.canvas.bind('<Button-1>', self.handle_left_click)
         self.canvas.bind('<Button-3>', self.handle_right_click)
         self.canvas.pack()
@@ -133,9 +146,71 @@ class Game(tk.Frame):
     def place_tile(self, x, y, img):
         self.canvas.create_image(x * self.tile_size + 2, y * self.tile_size + 2, anchor=tk.NW, image=img)
 
+def GameEasy():
+  gui.destroy()
+  root = tk.Tk()
+  root.title("MINESWEEPER")
+  #root.configure(background = "gray")
+  root.geometry("480x720")
+  game = Game(root, 8, 13, 480, 720, 50, 10)
+
+def GameNormal():
+  gui.destroy()
+  root = tk.Tk()
+  root.title("MINESWEEPER")
+  #root.configure(background = "gray")
+  root.geometry("580x820")
+  game = Game(root, 13, 15, 580, 820, 50, 40)
+
+def GameHard():
+  gui.destroy()
+  root = tk.Tk()
+  root.title("MINESWEEPER")
+  #root.configure(background = "gray")
+  root.geometry("1130x640")
+  game = Game(root, 30, 16, 1130, 640, 35, 99)
+
+def GameChoose(event):
+  gui.destroy()
+  root = tk.Tk()
+  root.title("MINESWEEPER")
+  #root.configure(background = "gray")
+  game = Game(root)
+
+
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    root.geometry("480x720")
-    game = Game(root, 8, 13, 50, 10)
-    root.mainloop()
+    gui = tk.Tk()
+    gui.title("gui")
+    gui.configure(background = "#d2e3d0")
+    gui.geometry("300x500")
+    diff = tk.Label(gui, text = "Difficulty")
+    diff.pack(pady=5)
+    easy = tk.Button(gui, text = "Easy", command = GameEasy)
+    easy.pack(pady=5)
+    medium = tk.Button(gui, text = "Medium", command = GameNormal)
+    medium.pack(pady=5)
+    hard = tk.Button(gui, text = "Hard", command = GameHard)
+    hard.pack(pady=5)
+
+    canvas = tk.Canvas(width = 100, height = 100)
+    
+    def number():
+      pass
+
+    number = tk.Label(canvas, text = "Enter a Number")
+    number.pack(pady=20)
+    box = tk.Entry(canvas)
+    box.pack(pady = 20)
+    button = tk.Button(canvas, text = "Confirm number", command = number)
+    canvaslabel = tk.Label(gui)
+    
+    canvas.pack()
+    
+
+
+    #gui.mainloop
+
+    gui.mainloop()
+
+
