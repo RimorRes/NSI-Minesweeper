@@ -27,30 +27,32 @@ def delimit_start_area(start_x, start_y, width, height, radius=1):
                 area.append([x, y])
     return area
 
-# gui = tk.Tk()
-# diff = tk.Label(gui, text = "Difficulty")
-# diff.pack()
-# easy = tk.Button(gui, text = "Easy", command = gui.destroy)
-# easy.pack()
-# medium = tk.Button(gui, text = "Medium", command = gui.destroy)
-# medium.pack()
-# hard = tk.Button(gui, text = "Hard", command = gui.destroy)
-# hard.pack()
-# gui.mainloop
+
+def center_widget(widget, widget_width=None, widget_height=None):
+    if widget_width is None:
+        widget.update()
+        widget_width = widget.winfo_width()
+    if widget_height is None:
+        widget.update()
+        widget_height = widget.winfo_height()
+
+    screen_width = widget.winfo_screenwidth()
+    screen_height = widget.winfo_screenheight()
+    x = (screen_width / 2) - (widget_width / 2)
+    y = (screen_height / 2) - (widget_height / 2)
+
+    widget.geometry(f'+{int(x)}+{int(y)}')
 
 
 class SplashScreen(tk.Toplevel):
 
     def __init__(self, master):
         super().__init__(master)
-        self.title("Splash Screen Example")
+        self.title("Minesweeper Splash Screen")
         self.overrideredirect(True)
 
-        screen_width = master.winfo_screenwidth()
-        screen_height = master.winfo_screenheight()
-        x = (screen_width/2) - (1280/2)
-        y = (screen_height/2) - (640/2)
-        self.geometry(f'1280x640+{int(x)}+{int(y)}')
+        self.geometry('1280x640')
+        center_widget(self, 1280, 640)
 
         self.canvas = tk.Canvas(self, width=1280, height=640, bd=-2)
         self.canvas.pack()
@@ -179,57 +181,46 @@ class Game(tk.Frame):
         self.canvas.create_image(x * self.tile_size, y * self.tile_size, anchor=tk.NW, image=img)
 
 
-def game_easy():  # Easy difficulty
+def start_game(difficulty):
     gui.destroy()
     root = tk.Tk()
+
+    if difficulty == "easy":  # Easy difficulty
+        root.geometry("480x720")
+        Game(
+            master=root,
+            width=8,
+            height=13,
+            tile_size=50,
+            number_mines=10
+        )
+    elif difficulty == "normal":  # Normal difficulty
+        root.geometry("580x820")
+        Game(
+            master=root,
+            width=13,
+            height=15,
+            tile_size=50,
+            number_mines=40
+        )
+    elif difficulty == "hard":  # Hard difficulty
+        root.geometry("1130x640")
+        Game(
+            master=root,
+            width=30,
+            height=16,
+            tile_size=35,
+            number_mines=99
+        )
+
+    elif difficulty == "custom":  # Custom difficulty
+        pass  # TODO: Choose your own difficulty
+
     root.title("Minesweeper")
     # root.configure(background="gray")
-    root.geometry("480x720")
-    Game(
-        master=root,
-        width=8,
-        height=13,
-        tile_size=50,
-        number_mines=10
-    )
+    center_widget(root)
 
-
-def game_normal():  # Normal difficulty
-    gui.destroy()
-    root = tk.Tk()
-    root.title("Minesweeper")
-    # root.configure(background="gray")
-    root.geometry("580x820")
-    Game(
-        master=root,
-        width=13,
-        height=15,
-        tile_size=50,
-        number_mines=40
-    )
-
-
-def game_hard():  # Hard difficulty
-    gui.destroy()
-    root = tk.Tk()
-    root.title("Minesweeper")
-    # root.configure(background = "gray")
-    root.geometry("1130x640")
-    Game(
-        master=root,
-        width=30,
-        height=16,
-        tile_size=35,
-        number_mines=99
-    )
-
-# TODO: Choose your own difficulty
-# def game_choose(event):  # Choose your own difficulty
-#     gui.destroy()
-#     root = tk.Tk()
-#     root.title("Minesweeper")
-#     root.configure(background="gray")
-#     Game(root)
+    root.mainloop()
 
 
 if __name__ == "__main__":
@@ -237,26 +228,27 @@ if __name__ == "__main__":
     gui = tk.Tk()  # Creating GUI
 
     # Splash screen
-    splash = SplashScreen(gui)
     gui.withdraw()
-    sleep(2)
-    splash.destroy()
-    gui.deiconify()
+    splash = SplashScreen(gui)
 
     gui.title("Menu")
     gui.configure(background="#d2e3d0")
     gui.geometry("300x500")
+    center_widget(gui, 300, 500)
+
     diff = tk.Label(gui, text="Difficulty")
     diff.pack(pady=5)
-    easy = tk.Button(gui, text="Easy", command=game_easy)  # Easy mode button
+
+    easy = tk.Button(gui, text="Easy", command=lambda: start_game("easy"))  # Easy mode button
     easy.pack(pady=5)
-    medium = tk.Button(gui, text="Normal", command=game_normal)  # Normal mode button
+    medium = tk.Button(gui, text="Normal", command=lambda: start_game("normal"))  # Normal mode button
     medium.pack(pady=5)
-    hard = tk.Button(gui, text="Hard", command=game_hard)  # Hard mode button
+    hard = tk.Button(gui, text="Hard", command=lambda: start_game("hard"))  # Hard mode button
     hard.pack(pady=5)
 
-    canvas = tk.Canvas(width=100, height=100)  # Canvas for choose your own
+    canvas = tk.Canvas(width=100, height=100)  # Canvas for custom difficulty
 
+    # TODO: finish this
     number = tk.Label(canvas, text="Enter a Number")
     number.pack(pady=20)
     box = tk.Entry(canvas)
@@ -266,5 +258,9 @@ if __name__ == "__main__":
     canvas_label = tk.Label(gui)
 
     canvas.pack()
+
+    sleep(1)
+    splash.destroy()
+    gui.deiconify()
 
     gui.mainloop()
