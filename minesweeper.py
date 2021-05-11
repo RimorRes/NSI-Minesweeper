@@ -210,10 +210,7 @@ if __name__ == "__main__":
     canvaslabel = tk.Label(gui)
     
     canvas.pack()
-    
 
-
-    #gui.mainloop
 
     gui.mainloop()
 
