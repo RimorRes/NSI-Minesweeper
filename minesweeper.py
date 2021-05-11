@@ -46,12 +46,12 @@ class Game(tk.Frame):
         self.master.title("Minesweeper")
         self.pack(side=tk.BOTTOM)
 
-        self.gwidth, self.gheight = geometry_width, geometry_height
+        self.gwidth, self.gheight = geometry_width, geometry_height # Geometry of the canvas
 
-        self.canvas = tk.Canvas(self, width= self.gwidth - 76, height= self.gheight - 76)
-        self.canvas.bind('<Button-1>', self.handle_left_click)
+        self.canvas = tk.Canvas(self, width= self.gwidth - 76, height= self.gheight - 76) #Dimensions of actual game
+        self.canvas.bind('<Button-1>', self.handle_left_click) #Binding clicks to have functions
         self.canvas.bind('<Button-3>', self.handle_right_click)
-        self.canvas.pack()
+        self.canvas.pack() 
 
         self.move_counter = 0
 
@@ -146,7 +146,7 @@ class Game(tk.Frame):
     def place_tile(self, x, y, img):
         self.canvas.create_image(x * self.tile_size + 2, y * self.tile_size + 2, anchor=tk.NW, image=img)
 
-def GameEasy():
+def GameEasy(): # Easy difficulty
   gui.destroy()
   root = tk.Tk()
   root.title("MINESWEEPER")
@@ -154,7 +154,7 @@ def GameEasy():
   root.geometry("480x720")
   game = Game(root, 8, 13, 480, 720, 50, 10)
 
-def GameNormal():
+def GameNormal(): # Normal difficulty
   gui.destroy()
   root = tk.Tk()
   root.title("MINESWEEPER")
@@ -162,7 +162,7 @@ def GameNormal():
   root.geometry("580x820")
   game = Game(root, 13, 15, 580, 820, 50, 40)
 
-def GameHard():
+def GameHard(): # Hard difficulty
   gui.destroy()
   root = tk.Tk()
   root.title("MINESWEEPER")
@@ -170,7 +170,7 @@ def GameHard():
   root.geometry("1130x640")
   game = Game(root, 30, 16, 1130, 640, 35, 99)
 
-def GameChoose(event):
+def GameChoose(event): # Choose your own difficulty
   gui.destroy()
   root = tk.Tk()
   root.title("MINESWEEPER")
@@ -180,29 +180,33 @@ def GameChoose(event):
 
 
 if __name__ == "__main__":
-    gui = tk.Tk()
+    gui = tk.Tk() #Creating GUI
     gui.title("gui")
     gui.configure(background = "#d2e3d0")
     gui.geometry("300x500")
     diff = tk.Label(gui, text = "Difficulty")
     diff.pack(pady=5)
-    easy = tk.Button(gui, text = "Easy", command = GameEasy)
+    easy = tk.Button(gui, text = "Easy", command = GameEasy) #Easy mode button
     easy.pack(pady=5)
-    medium = tk.Button(gui, text = "Medium", command = GameNormal)
+    medium = tk.Button(gui, text = "Normal", command = GameNormal) #Normal mode button
     medium.pack(pady=5)
-    hard = tk.Button(gui, text = "Hard", command = GameHard)
+    hard = tk.Button(gui, text = "Hard", command = GameHard) #Hard mode button
     hard.pack(pady=5)
 
-    canvas = tk.Canvas(width = 100, height = 100)
+
+
+
+    canvas = tk.Canvas(width = 100, height = 100) # Canvas for choose your own
     
-    def number():
+    def number(): 
       pass
 
     number = tk.Label(canvas, text = "Enter a Number")
     number.pack(pady=20)
     box = tk.Entry(canvas)
-    box.pack(pady = 20)
+    box.pack(pady = 10)
     button = tk.Button(canvas, text = "Confirm number", command = number)
+    button.pack(pady=20)
     canvaslabel = tk.Label(gui)
     
     canvas.pack()
