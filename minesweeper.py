@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import messagebox
 import tkinter.ttk as ttk
 from ttkthemes import ThemedStyle
 import random
@@ -70,22 +71,21 @@ class SplashScreen(tk.Toplevel):
 class MainMenuGUI(tk.Tk):
 
     def __init__(self):
-        # Setting up the window
         super().__init__()
-        self.title("Main Menu")
-        icon_image = ImageTk.PhotoImage(Image.open('textures/title_bar_icon.png'))
-        self.iconphoto(False, icon_image)
-
-        # Setting up the style
-        style = ThemedStyle(self)
-        style.theme_use('arc')
-
         # Splash screen
         self.withdraw()
         splash = SplashScreen(self)
 
+        # Setting up the window
+        self.title("Main Menu")
+        icon_image = ImageTk.PhotoImage(Image.open('textures/title_bar_icon.png'))
+        self.iconphoto(False, icon_image)
         self.geometry("300x500")
         center_widget(self, 300, 500)
+
+        # Setting up the style
+        style = ThemedStyle(self)
+        style.theme_use('arc')
 
         self.display_menu_content()
 
@@ -212,15 +212,26 @@ class Game(tk.Tk):
             self.mine_positions = generate_mines(self.width, self.height, self.number_mines, excluded=start_area)
             self.count_adjacent_mines()
 
+        # TODO: make this victory checking better
         if [x, y] not in self.flag_positions:
             if [x, y] in self.mine_positions:
                 self.place_tile(x, y, self.tile_images['bomb'])
-                print("You lose!")
+                response = messagebox.askyesno("Game over!", "You lost! Do you want to try again?")
+                if response:
+                    self.destroy()
+                    Game(self.width, self.height, self.tile_size, self.number_mines)
+                else:
+                    self.destroy()
             else:
                 self.reveal_tiles(x, y)
                 # If all tiles which aren't mines are discovered
                 if len(self.discovered_tiles) + self.number_mines == self.width * self.height:
-                    print("You win!")
+                    response = messagebox.askyesno("Game over!", "You win! Do you want to try again?")
+                    if response:
+                        self.destroy()
+                        Game(self.width, self.height, self.tile_size, self.number_mines)
+                    else:
+                        self.destroy()
 
     def handle_right_click(self, event):
         x = event.x // self.tile_size
@@ -228,6 +239,9 @@ class Game(tk.Tk):
 
         if self.move_counter >= 1:
             self.toggle_flag(x, y)
+
+    def game_over(self):
+        pass  # TODO: actually fill this in
 
     def toggle_flag(self, x, y):
     

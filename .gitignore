@@ -1,4 +1,5 @@
-build
-venv
+/build/
+/dist/
+/venv/
 .replit
 .idea
