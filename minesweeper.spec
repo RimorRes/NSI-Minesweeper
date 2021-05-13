@@ -9,6 +9,7 @@ added_files = [
     ('textures', 'textures')
     ]
 
+
 a = Analysis(['minesweeper.py'],
              pathex=['C:\\Users\\maxim\\PycharmProjects\\NSI-Minesweeper'],
              binaries=[],
@@ -32,7 +33,7 @@ exe = EXE(pyz,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
-          console=True , icon='textures\\game_icon.ico')
+          console=False , icon='textures\\game_icon.ico')
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
