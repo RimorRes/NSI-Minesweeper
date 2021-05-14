@@ -4,7 +4,6 @@ import tkinter.ttk as ttk
 from ttkthemes import ThemedStyle
 import random
 from PIL import ImageTk, Image
-from time import sleep
 
 
 def generate_mines(width, height, number_mines, excluded):
@@ -31,7 +30,7 @@ def delimit_start_area(start_x, start_y, width, height, radius=1):
     return area
 
 
-def center_widget(widget, widget_width=None, widget_height=None):
+def center_window(widget, widget_width=None, widget_height=None):
     if widget_width is None:
         widget.update()
         widget_width = widget.winfo_width()
@@ -51,21 +50,33 @@ class SplashScreen(tk.Toplevel):
 
     def __init__(self, master):
         super().__init__(master)
+
+        # Setting up the window
         self.title("Minesweeper Splash Screen")
         self.overrideredirect(True)
+        self.geometry('640x360')
+        center_window(self, 640, 360)
 
-        self.geometry('1280x640')
-        center_widget(self, 1280, 640)
+        # Importing each frame of the .gif
+        fname = 'textures/splash_screen.gif'
+        n_frames = Image.open(fname).n_frames
+        self.frames = [tk.PhotoImage(file=fname, format=f'gif -index {i}') for i in range(n_frames)]
 
-        self.canvas = tk.Canvas(self, width=1280, height=640, bd=-2)
-        self.canvas.pack()
-        self.img = ImageTk.PhotoImage(
-                Image.open('textures/naval_mine6.png')
-                .resize((1280, 640))
-            )
-        self.canvas.create_image(0, 0, anchor=tk.NW, image=self.img)
+        # Displaying the .gif
+        self.gif_label = tk.Label(self, image='')
+        self.gif_label.pack()
+        self.frame_index = 0
+        self.animation()
 
         self.update()
+
+    def animation(self):
+        if self.frame_index < len(self.frames):
+            self.gif_label.configure(image=self.frames[self.frame_index])
+            self.update()
+            self.frame_index += 1
+            self.gif_label.after(ms=25)
+            self.animation()
 
 
 class MainMenuGUI(tk.Tk):
@@ -81,7 +92,7 @@ class MainMenuGUI(tk.Tk):
         icon_image = ImageTk.PhotoImage(Image.open('textures/title_bar_icon.png'))
         self.iconphoto(False, icon_image)
         self.geometry("300x500")
-        center_widget(self, 300, 500)
+        center_window(self, 300, 500)
 
         # Setting up the style
         style = ThemedStyle(self)
@@ -89,7 +100,6 @@ class MainMenuGUI(tk.Tk):
 
         self.display_menu_content()
 
-        sleep(1)
         splash.destroy()
         self.deiconify()
 
@@ -166,7 +176,7 @@ class Game(tk.Tk):
         w = self.width * self.tile_size + 50*2  # canvas width + extra padding
         h = self.height * self.tile_size + 50*2  # canvas width + extra padding
         self.geometry(f"{int(w)}x{int(h)}")
-        center_widget(self)
+        center_window(self)
 
         # Setting up canvas
         self.canvas = tk.Canvas(  # Dimensions of actual game + remove thin border
@@ -187,10 +197,11 @@ class Game(tk.Tk):
         self.mine_positions = []
         self.flag_positions = []
         self.discovered_tiles = []
+        self.tripped_mine = []
 
         # Handling game icon/images
         self.tile_images = {}
-        tiles = ['tile', 'flag', 'bomb', 'hidden', 'wrong', '0', '1', '2', '3', '4', '5', '6', '7', '8']
+        tiles = ['tile', 'flag', 'mine', 'hidden', 'wrong', '0', '1', '2', '3', '4', '5', '6', '7', '8']
         for t in tiles:
             self.tile_images[t] = ImageTk.PhotoImage(
                 Image.open('textures/' + t + '.png')
@@ -207,31 +218,23 @@ class Game(tk.Tk):
         y = event.y // self.tile_size
         self.move_counter += 1
 
+        # First move and mine generation
         if self.move_counter == 1:
             start_area = delimit_start_area(x, y, self.width, self.height)
             self.mine_positions = generate_mines(self.width, self.height, self.number_mines, excluded=start_area)
             self.count_adjacent_mines()
 
-        # TODO: make this victory checking better
+        # Reveal tiles and victory/defeat condition
         if [x, y] not in self.flag_positions:
             if [x, y] in self.mine_positions:
-                self.place_tile(x, y, self.tile_images['bomb'])
-                response = messagebox.askyesno("Game over!", "You lost! Do you want to try again?")
-                if response:
-                    self.destroy()
-                    Game(self.width, self.height, self.tile_size, self.number_mines)
-                else:
-                    self.destroy()
+                self.place_tile(x, y, self.tile_images['mine'])
+                self.tripped_mine = [x, y]
+                self.game_over('lose')  # Defeat
             else:
                 self.reveal_tiles(x, y)
                 # If all tiles which aren't mines are discovered
                 if len(self.discovered_tiles) + self.number_mines == self.width * self.height:
-                    response = messagebox.askyesno("Game over!", "You win! Do you want to try again?")
-                    if response:
-                        self.destroy()
-                        Game(self.width, self.height, self.tile_size, self.number_mines)
-                    else:
-                        self.destroy()
+                    self.game_over('win')  # Victory
 
     def handle_right_click(self, event):
         x = event.x // self.tile_size
@@ -240,8 +243,37 @@ class Game(tk.Tk):
         if self.move_counter >= 1:
             self.toggle_flag(x, y)
 
-    def game_over(self):
-        pass  # TODO: actually fill this in
+    def game_over(self, outcome):
+        if outcome == 'lose':
+            # Showing hidden bombs
+            for mine in self.mine_positions:
+                if mine != self.tripped_mine and mine not in self.flag_positions:
+                    x, y = mine
+                    self.place_tile(x, y, self.tile_images['hidden'])
+
+            # Showing wrong guesses
+            for flag in self.flag_positions:
+                if flag not in self.mine_positions:
+                    x, y = flag
+                    self.place_tile(x, y, self.tile_images['wrong'])
+
+        # Dialog box
+        response = messagebox.askyesno('Game over!', f'You {outcome}! Do you want to try again?')
+        if response:
+            self.restart()
+        else:
+            self.destroy()
+
+    def restart(self):
+        # Resetting variables
+        self.move_counter = 0
+        self.tile_states = [[0] * self.width for _ in range(self.height)]  # matrix for number of adjacent mines
+        self.mine_positions = []
+        self.flag_positions = []
+        self.discovered_tiles = []
+        self.tripped_mine = []
+
+        self.init_grid()
 
     def toggle_flag(self, x, y):
     
