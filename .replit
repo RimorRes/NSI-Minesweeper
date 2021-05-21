@@ -1,3 +1,2 @@
-run = "python minesweeper/minesweeper.py"
+run = "pip install -r REQUIREMENTS.txt && python minesweeper/minesweeper.py"
 language = "bash"
-onBoot = "pip install -r REQUIREMENTS.txt"
