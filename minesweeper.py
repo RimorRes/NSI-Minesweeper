@@ -1,3 +1,11 @@
+"""
+NSI-Minesweeper
+Python Minesweeper game using Tkinter. This game is the final project for the NSI curriculum of 2020-2021.
+Made by: Maxime Djmb, Ian McFarland
+
+!!! To install the necessary modules use: pip install -r REQUIREMENTS.txt
+"""
+
 import multiprocessing
 import threading
 import random
