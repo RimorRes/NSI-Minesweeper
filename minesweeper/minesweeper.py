@@ -1,6 +1,7 @@
 import random
 import tkinter as tk
 import tkinter.ttk as ttk
+from tkinter import messagebox
 
 from PIL import ImageTk, Image
 from ttkthemes import ThemedStyle
@@ -111,14 +112,14 @@ class Game(tk.Frame):
 
         # Setting up the canvas
         self.canvas = tk.Canvas(
-            self,
+            master,
             width=self.width * self.tile_size,
             height=self.height * self.tile_size,
             bd=-2
         )
         self.canvas.bind('<Button-1>', self.handle_left_click)  # Binding clicks to functions
         self.canvas.bind('<Button-3>', self.handle_right_click)
-        self.canvas.pack()
+        self.canvas.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 
         # Handling game icon/images
         self.tile_images = {}
@@ -157,6 +158,8 @@ class Game(tk.Frame):
             else:
                 self.reveal_tiles(x, y)
 
+        self.check_win()
+
     def handle_right_click(self, event):
         x = event.x // self.tile_size
         y = event.y // self.tile_size
@@ -185,6 +188,13 @@ class Game(tk.Frame):
                 if flag not in self.mine_positions:
                     x, y = flag
                     self.place_tile(x, y, self.tile_images['wrong'])
+
+        # Dialog box
+        response = messagebox.askyesno('Game over!', f'You {outcome}! Do you want to try again?')
+        if response:
+            self.restart()
+        else:
+            root.destroy()  # TODO: make ALL of this more elegant
 
     def restart(self):
         # Resetting variables
