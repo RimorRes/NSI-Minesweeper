@@ -48,7 +48,6 @@ def center_window(window, width=None, height=None):
 
 def hide_frame(frame, sub_canvases=()):
     for widget in frame.winfo_children():
-        print(widget)
         widget.destroy()
 
     if sub_canvases:
