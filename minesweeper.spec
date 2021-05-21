@@ -6,7 +6,8 @@ block_cipher = None
 
 added_files = [
     ('README.md', '.'),
-    ('textures', 'textures')
+    ('textures', 'textures'),
+    ('audio', 'audio')
     ]
 
 
