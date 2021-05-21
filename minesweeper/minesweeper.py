@@ -1,5 +1,5 @@
-from minesweeper.logic import GameCanvas
-from minesweeper.gui import SplashScreen, center_window
+from logic import GameCanvas
+from gui import SplashScreen, center_window
 import multiprocessing
 import tkinter as tk
 import tkinter.ttk as ttk
@@ -11,7 +11,7 @@ from ttkthemes import ThemedStyle
 
 def play():
     while True:
-        playsound.playsound('../audio/Bubbles_and_Submarines.mp3')
+        playsound.playsound('audio/Bubbles_and_Submarines.mp3')
 
 class AudioGameTheme:
 
@@ -35,7 +35,7 @@ class MainMenuGUI(tk.Tk):
 
         # Setting up the window
         self.title("Main Menu")
-        icon_image = ImageTk.PhotoImage(Image.open('../textures/title_bar_icon.png'))
+        icon_image = ImageTk.PhotoImage(Image.open('textures/title_bar_icon.png'))
         self.iconphoto(False, icon_image)
         self.geometry("300x500")
         center_window(self, 300, 500)

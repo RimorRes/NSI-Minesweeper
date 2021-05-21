@@ -30,7 +30,7 @@ class SplashScreen(tk.Toplevel):
         center_window(self, 640, 360)
 
         # Importing each frame of the .gif
-        file_name = '../textures/splash_screen.gif'
+        file_name = 'textures/splash_screen.gif'
         n_frames = Image.open(file_name).n_frames
         self.frames = [tk.PhotoImage(file=file_name, format=f'gif -index {i}') for i in range(n_frames)]
 
