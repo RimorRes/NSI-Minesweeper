@@ -11,26 +11,27 @@ from ttkthemes import ThemedStyle
 
 
 def generate_mines(width, height, number_mines, excluded):
-    mine_list = []
+    mine_list = []  # init liste des mines
 
     while len(mine_list) < number_mines:
         x = random.randint(0, width - 1)
         y = random.randint(0, height - 1)
-        pos = [x, y]
+        pos = [x, y]  # position de la mine
+        # on verifie que la position n'existe pas deja et qu'elle n'est pas dans la zone de depart protegee
         if pos not in mine_list and pos not in excluded:
-            mine_list.append(pos)
+            mine_list.append(pos)  # on enregistre la position
 
-    return mine_list
+    return mine_list  # on renvoie la liste
 
 
 def delimit_start_area(start_x, start_y, width, height, radius=1):
-    area = []
+    area = []  # la zone de depart protegee (ou il n'y aura pas de mines)
     for vert in range(-radius, radius + 1):
         for horz in range(-radius, radius + 1):
             x = start_x + horz
             y = start_y + vert
             if (0 <= x < width) and (0 <= y < height):
-                area.append([x, y])
+                area.append([x, y])  # on explore toutes les positions dans un rayon autour de la pos de depart
     return area
 
 
@@ -47,26 +48,26 @@ def center_window(window, width=None, height=None):
     x = (screen_width / 2) - (width / 2)
     y = (screen_height / 2) - (height / 2)
 
-    window.geometry(f'+{int(x)}+{int(y)}')
+    window.geometry(f'+{int(x)}+{int(y)}')  # centrer la fenetre
 
 
-def hide_frame(frame, sub_canvases=()):
+def hide_frame(frame, sub_canvases=None):
     for widget in frame.winfo_children():
-        widget.destroy()
+        widget.destroy()  # on supprime les enfants du cadre
 
     if sub_canvases:
-        for canvas in sub_canvases:
+        for canvas in sub_canvases:  # si le cadre a des canevas, on supprime tout ce qu'il y a dedans
             canvas.delete("all")
 
-    frame.pack_forget()
+    frame.pack_forget()  # pour cacher le cadre
 
 
 def play():
     while True:
-        playsound.playsound('audio/Bubbles_and_Submarines.mp3')
+        playsound.playsound('audio/Bubbles_and_Submarines.mp3')  # jouer la bande son en boucle
 
 
-class AudioGameTheme:
+class AudioGameTheme:  # Controleur pour la musique
 
     def __init__(self):
         self.process = multiprocessing.Process(target=play)
@@ -76,7 +77,7 @@ class AudioGameTheme:
         self.process.terminate()
 
 
-class SplashScreen(tk.Toplevel):
+class SplashScreen(tk.Toplevel):  # Ecran de chargement
 
     def __init__(self, master):
         super().__init__(master)
@@ -116,17 +117,17 @@ class Game(tk.Frame):
         super().__init__(master)
 
         # Init variables
-        self.width, self.height = width, height  # dimensions; columns and rows
+        self.width, self.height = width, height  # game dimensions; columns and rows
         self.tile_size = tile_size  # tile dimensions
         self.number_mines = number_mines
         self.move_counter = 0
 
         # Setting up tile states
         self.tile_states = [[0] * self.width for _ in range(self.height)]  # matrix for number of adjacent mines
-        self.mine_positions = []
-        self.flag_positions = []
-        self.discovered_tiles = []
-        self.tripped_mine = []
+        self.mine_positions = []  # list of mine positions
+        self.flag_positions = []  # list of flag positions
+        self.discovered_tiles = []  # list of discovered tiles
+        self.tripped_mine = []  # the mine the player exploded
 
         # Setting up the canvas
         self.canvas = tk.Canvas(
@@ -183,7 +184,7 @@ class Game(tk.Frame):
         y = event.y // self.tile_size
 
         if self.move_counter >= 1:
-            self.toggle_flag(x, y)
+            self.toggle_flag(x, y)  # place/remove a flag
 
     def check_win(self):
         if self.tripped_mine:
@@ -196,6 +197,7 @@ class Game(tk.Frame):
             self.game_over('win')  # Victory
 
     def game_over(self, outcome):
+        # game-over event according to outcome: either a win or a loss
         if outcome == 'lose':
             # Showing hidden bombs
             for mine in self.mine_positions:
@@ -211,11 +213,12 @@ class Game(tk.Frame):
 
         # Dialog box
         response = messagebox.askyesno('Game over!', f'You {outcome}! Do you want to try again?')
+        # Restarting the game or quitting
         if response:
-            self.restart()
+            self.restart()  # reset the game but keep the same settings
         else:
-            audio_loop.stop()
-            root.destroy()  # TODO: make ALL of this more elegant
+            audio_loop.stop()  # stop the music
+            root.destroy()  # destroy the window
 
     def restart(self):
         # Resetting variables
@@ -242,34 +245,39 @@ class Game(tk.Frame):
                 self.flag_positions.append([x, y])  # Place a flag and add to flag positions
 
     def count_adjacent_mines(self):
-        for m in self.mine_positions:
+        # chaque case est initialise a 0. A chaque fois qu'une case a une mine adjacente, on incremente de 1
+        for m in self.mine_positions:  # on itere toutes les mines
             x, y = m
             for vert in range(-1, 2):
                 for horz in range(-1, 2):
-                    if (0 <= x + horz < self.width) and (0 <= y + vert < self.height):
-                        self.tile_states[y + vert][x + horz] += 1
+                    if (0 <= x + horz < self.width) and (0 <= y + vert < self.height):  # verif coordonnees valides
+                        self.tile_states[y + vert][x + horz] += 1  # on regarde dans un rayon de 1 autour de la mine
 
     def reveal_tiles(self, x, y):
-        if not [x, y] in self.discovered_tiles:
+        # Recursive function that allows the discovery of tiles
+        if not [x, y] in self.discovered_tiles:  # si on a pas deja explore cette case...
             i = str(self.tile_states[y][x])
-            self.place_tile(x, y, self.tile_images[i])
-            self.discovered_tiles.append([x, y])
+            self.place_tile(x, y, self.tile_images[i])  # ... on dessine sur le canevas
+            self.discovered_tiles.append([x, y])  # ... et on ajoute la case aux cases decouvertes
 
-            if self.tile_states[y][x] == 0:
+            if self.tile_states[y][x] == 0:  # si la case n'a pas de mines a cote, on peut continuer d'ouvrir les cases
                 for vert in range(-1, 2):
                     for horz in range(-1, 2):
-                        if (0 <= x + horz < self.width) and (0 <= y + vert < self.height):
-                            if [x + horz, y + vert] not in self.discovered_tiles:
-                                self.reveal_tiles(x + horz, y + vert)
+                        if (0 <= x + horz < self.width) and (0 <= y + vert < self.height):  # verif coordonnees valides
+                            if [x + horz, y + vert] not in self.discovered_tiles:  # verif case pas deja decouverte
+                                self.reveal_tiles(x + horz, y + vert)  # on libere les cases dans un rayon de 1
 
         return
 
     def init_grid(self):
+        # On initialise la grille
         for y in range(self.height):
             for x in range(self.width):
                 self.place_tile(x, y, self.tile_images['tile'])
 
     def place_tile(self, x, y, img):
+        # on transforme les x,y de la grille en coordonnees de pixel
+        # on dessine au coordonnes l'image/la case que l'on souhaite
         self.canvas.create_image(x * self.tile_size, y * self.tile_size, anchor=tk.NW, image=img)
 
 
@@ -282,6 +290,7 @@ class MainMenu(tk.Frame):
         self.display_menu_content()
 
     def display_menu_content(self):
+        # Defining the buttons and labels
         diff = ttk.Label(self, text="Difficulty")
         diff.grid(pady=5)
 
@@ -292,7 +301,8 @@ class MainMenu(tk.Frame):
         hard = ttk.Button(self, text="Hard", command=lambda: set_difficulty("hard"))  # Hard mode button
         hard.grid(pady=5)
 
-        # TODO: finish this
+        # Custom difficulty
+        # TODO: finish the custom difficulty
         canvas_label = ttk.Label(self, text="Custom difficulty")
         canvas_label.grid(pady=20)
         number = ttk.Label(self, text="Enter a Number")
@@ -304,15 +314,18 @@ class MainMenu(tk.Frame):
 
 
 def start_up():
-    root.withdraw()
-    splash = SplashScreen(root)
+    root.withdraw()  # hide the main window when loading
+    splash = SplashScreen(root)  # display splash screen
 
+    # Setting up the main window
     icon_image = ImageTk.PhotoImage(Image.open('textures/title_bar_icon.png'))
     root.iconphoto(False, icon_image)
 
+    # Tk Style
     style = ThemedStyle(root)
     style.theme_use('arc')
 
+    # End of loading. Maximize main window
     splash.destroy()
     root.deiconify()
 
@@ -333,11 +346,11 @@ def set_difficulty(difficulty):
 
 
 def new_game(width, height, tile_size, number_mines):
-    hide_frame(main_menu)
+    hide_frame(main_menu)  # hide the menu frame
 
     root.title("Minesweeper")
 
-    game = Game(
+    game = Game(  # create a new game with the specified settings
         master=root,
         width=width,
         height=height,
@@ -348,14 +361,17 @@ def new_game(width, height, tile_size, number_mines):
 
 
 if __name__ == "__main__":
-    root = tk.Tk()
+    root = tk.Tk()  # init the main window
 
-    start_up()
-    audio_loop = AudioGameTheme()
+    start_up()  # booting up
+    audio_loop = AudioGameTheme()  # start audio loop
 
     root.title("Main Menu")
+    # centrer et redimensioner la fenetre
     root.geometry("300x500")
     center_window(root, 300, 500)
+
+    # display the menu
     main_menu = MainMenu(root)
     main_menu.pack()
 
