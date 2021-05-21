@@ -1,8 +1,11 @@
+import multiprocessing
+import threading
 import random
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import messagebox
 
+import playsound
 from PIL import ImageTk, Image
 from ttkthemes import ThemedStyle
 
@@ -56,6 +59,21 @@ def hide_frame(frame, sub_canvases=()):
             canvas.delete("all")
 
     frame.pack_forget()
+
+
+def play():
+    while True:
+        playsound.playsound('audio/Bubbles_and_Submarines.mp3')
+
+
+class AudioGameTheme:
+
+    def __init__(self):
+        self.process = multiprocessing.Process(target=play)
+        self.process.start()
+
+    def stop(self):
+        self.process.terminate()
 
 
 class SplashScreen(tk.Toplevel):
@@ -169,6 +187,8 @@ class Game(tk.Frame):
 
     def check_win(self):
         if self.tripped_mine:
+            explosion = threading.Thread(target=playsound.playsound, args=('audio/explosion_medium.wav', ))
+            explosion.start()
             self.game_over('lose')  # Defeat
 
         # If all tiles which aren't mines are discovered
@@ -194,6 +214,7 @@ class Game(tk.Frame):
         if response:
             self.restart()
         else:
+            audio_loop.stop()
             root.destroy()  # TODO: make ALL of this more elegant
 
     def restart(self):
@@ -330,6 +351,7 @@ if __name__ == "__main__":
     root = tk.Tk()
 
     start_up()
+    audio_loop = AudioGameTheme()
 
     root.title("Main Menu")
     root.geometry("300x500")
