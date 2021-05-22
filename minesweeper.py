@@ -326,8 +326,9 @@ def start_up():
     splash = SplashScreen(root)  # display splash screen
 
     # Setting up the main window
+    root.protocol("WM_DELETE_WINDOW", on_closing)
     icon_image = ImageTk.PhotoImage(Image.open('textures/title_bar_icon.png'))
-    root.iconphoto(False, icon_image)
+    root.iconphoto(False, icon_image)  # window icon
 
     # Tk Style
     style = ThemedStyle(root)
@@ -336,6 +337,11 @@ def start_up():
     # End of loading. Maximize main window
     splash.destroy()
     root.deiconify()
+
+
+def on_closing():
+    audio_loop.stop()
+    root.destroy()
 
 
 def set_difficulty(difficulty):
@@ -369,6 +375,8 @@ def new_game(width, height, tile_size, number_mines):
 
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()  # Fix for freeze packaging (pyinstaller) support
+
     root = tk.Tk()  # init the main window
 
     start_up()  # booting up
