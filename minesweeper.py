@@ -81,8 +81,13 @@ class GameAudio:  # Controleur pour la musique
         self.sonar_ping = simpleaudio.WaveObject.from_wave_file('audio/sonar.wav')
         self.explosion = simpleaudio.WaveObject.from_wave_file('audio/explosion.wav')
 
-        threading.Thread(target=self.theme_loop).start()
-        threading.Thread(target=self.sonar_sfx).start()
+        theme_thread = threading.Thread(target=self.theme_loop)
+        theme_thread.name = "ThemeSFXThread"
+        theme_thread.start()
+
+        sonar_thread = threading.Thread(target=self.sonar_sfx)
+        sonar_thread.name = "SonarSFXThread"
+        sonar_thread.start()
 
     def theme_loop(self):
         while not self.stop:
@@ -98,7 +103,9 @@ class GameAudio:  # Controleur pour la musique
                 sleep(1)
 
     def explosion_sfx(self):
-        threading.Thread(target=self.explosion.play).start()
+        explo_thread = threading.Thread(target=self.explosion.play)
+        explo_thread.name = 'ExplosionSFXThread'
+        explo_thread.start()
 
 
 class SplashScreen(tk.Toplevel):  # Ecran de chargement
