@@ -43,14 +43,7 @@ def delimit_start_area(start_x, start_y, width, height, radius=1):
     return area
 
 
-def center_window(window, width=None, height=None):
-    if width is None:
-        window.update()
-        width = window.winfo_width()
-    if height is None:
-        window.update()
-        height = window.winfo_height()
-
+def center_window(window, width, height):
     screen_width = window.winfo_screenwidth()
     screen_height = window.winfo_screenheight()
     x = (screen_width / 2) - (width / 2)
@@ -141,13 +134,14 @@ class SplashScreen(tk.Toplevel):  # Ecran de chargement
             self.animation()
 
 
-class Game(tk.Frame):
+class GameBoard(tk.Frame):
 
     def __init__(self, master, width, height, tile_size, number_mines):
         # Inheriting tk.Frame properties
         super().__init__(master, bd=40, relief='raised')
 
         # Init variables
+        # TODO: Auto-scale board dimensions
         self.width, self.height = width, height  # game dimensions; columns and rows
         self.tile_size = tile_size  # tile dimensions
         self.number_mines = number_mines
@@ -341,10 +335,8 @@ def start_up():
     splash = SplashScreen(root)  # display splash screen
 
     # resize and center window
-    s_width = root.winfo_screenwidth()
-    s_height = root.winfo_screenheight()
-    root.geometry(f"{s_width}x{s_width}")
-    center_window(root, s_width, s_height)
+    root.geometry(f"{1280}x{720}")
+    center_window(root, 1280, 720)
 
     # Setting up the main window
     root.protocol("WM_DELETE_WINDOW", on_closing)
@@ -386,7 +378,7 @@ def new_game(width, height, tile_size, number_mines):
 
     root.title("Minesweeper")
 
-    game = Game(  # create a new game with the specified settings
+    game = GameBoard(  # create a new game with the specified settings
         master=root,
         width=width,
         height=height,
