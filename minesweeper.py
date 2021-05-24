@@ -6,14 +6,14 @@ Made by: Maxime Djmb, Ian McFarland
 !!! To install the necessary modules use: pip install -r REQUIREMENTS.txt
 """
 
-import multiprocessing
 import threading
-import random
 import tkinter as tk
 import tkinter.ttk as ttk
+from random import randint
+from time import sleep
 from tkinter import messagebox
 
-import playsound
+import simpleaudio
 from PIL import ImageTk, Image
 from ttkthemes import ThemedStyle
 
@@ -22,8 +22,8 @@ def generate_mines(width, height, number_mines, excluded):
     mine_list = []  # init liste des mines
 
     while len(mine_list) < number_mines:
-        x = random.randint(0, width - 1)
-        y = random.randint(0, height - 1)
+        x = randint(0, width - 1)
+        y = randint(0, height - 1)
         pos = [x, y]  # position de la mine
         # on verifie que la position n'existe pas deja et qu'elle n'est pas dans la zone de depart protegee
         if pos not in mine_list and pos not in excluded:
@@ -67,22 +67,38 @@ def hide_frame(frame, sub_canvases=None):
         for canvas in sub_canvases:  # si le cadre a des canevas, on supprime tout ce qu'il y a dedans
             canvas.delete("all")
 
+    frame.place_forget()  # pour cacher le cadre
     frame.pack_forget()  # pour cacher le cadre
+    frame.grid_forget()  # pour cacher le cadre
 
 
-def play():
-    while True:
-        playsound.playsound('audio/Bubbles_and_Submarines.mp3')  # jouer la bande son en boucle
-
-
-class AudioGameTheme:  # Controleur pour la musique
+class GameAudio:  # Controleur pour la musique
 
     def __init__(self):
-        self.process = multiprocessing.Process(target=play)
-        self.process.start()
+        self.stop = False
 
-    def stop(self):
-        self.process.terminate()
+        self.main_theme = simpleaudio.WaveObject.from_wave_file('audio/Waypoint_K.wav')
+        self.sonar_ping = simpleaudio.WaveObject.from_wave_file('audio/sonar.wav')
+        self.explosion = simpleaudio.WaveObject.from_wave_file('audio/explosion.wav')
+
+        threading.Thread(target=self.theme_loop).start()
+        threading.Thread(target=self.sonar_sfx).start()
+
+    def theme_loop(self):
+        while not self.stop:
+            play = self.main_theme.play()
+            play.wait_done()
+
+    def sonar_sfx(self):
+        while not self.stop:
+            if randint(1, 20) == 1:
+                play = self.sonar_ping.play()
+                play.wait_done()
+            else:
+                sleep(1)
+
+    def explosion_sfx(self):
+        threading.Thread(target=self.explosion.play).start()
 
 
 class SplashScreen(tk.Toplevel):  # Ecran de chargement
@@ -122,7 +138,7 @@ class Game(tk.Frame):
 
     def __init__(self, master, width, height, tile_size, number_mines):
         # Inheriting tk.Frame properties
-        super().__init__(master)
+        super().__init__(master, bd=40, relief='raised')
 
         # Init variables
         self.width, self.height = width, height  # game dimensions; columns and rows
@@ -139,14 +155,14 @@ class Game(tk.Frame):
 
         # Setting up the canvas
         self.canvas = tk.Canvas(
-            master,
+            self,
             width=self.width * self.tile_size,
             height=self.height * self.tile_size,
             bd=-2
         )
         self.canvas.bind('<Button-1>', self.handle_left_click)  # Binding clicks to functions
         self.canvas.bind('<Button-3>', self.handle_right_click)
-        self.canvas.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
+        self.canvas.pack()
 
         # Handling game icon/images
         self.tile_images = {}
@@ -156,12 +172,6 @@ class Game(tk.Frame):
                 Image.open('textures/' + t + '.png')
                 .resize((self.tile_size, self.tile_size))
             )
-
-        # Resizing game window
-        w = self.width * self.tile_size + 50 * 2  # canvas width + extra padding
-        h = self.height * self.tile_size + 50 * 2  # canvas width + extra padding
-        master.geometry(f"{int(w)}x{int(h)}")
-        center_window(master)
 
         # Setting up the starting grid
         self.init_grid()
@@ -196,8 +206,7 @@ class Game(tk.Frame):
 
     def check_win(self):
         if self.tripped_mine:
-            explosion = threading.Thread(target=playsound.playsound, args=('audio/explosion_medium.wav', ))
-            explosion.start()
+            audio.explosion_sfx()
             self.game_over('lose')  # Defeat
 
         # If all tiles which aren't mines are discovered
@@ -225,8 +234,7 @@ class Game(tk.Frame):
         if response:
             self.restart()  # reset the game but keep the same settings
         else:
-            audio_loop.stop()  # stop the music
-            root.destroy()  # destroy the window
+            on_closing()  # destroy the window
 
     def restart(self):
         # Resetting variables
@@ -293,7 +301,7 @@ class MainMenu(tk.Frame):
 
     def __init__(self, master):
         # Inheriting tk.Frame properties
-        super().__init__(master)
+        super().__init__(master, height=500, width=500, bd=20, relief='raised')
 
         self.display_menu_content()
 
@@ -311,8 +319,8 @@ class MainMenu(tk.Frame):
 
         # Custom difficulty
         # TODO: finish the custom difficulty
-        canvas_label = ttk.Label(self, text="Custom difficulty")
-        canvas_label.grid(pady=20)
+        label = ttk.Label(self, text="Custom difficulty")
+        label.grid(pady=20)
         number = ttk.Label(self, text="Enter a Number")
         number.grid()
         box = ttk.Entry(self)
@@ -324,6 +332,12 @@ class MainMenu(tk.Frame):
 def start_up():
     root.withdraw()  # hide the main window when loading
     splash = SplashScreen(root)  # display splash screen
+
+    # resize and center window
+    s_width = root.winfo_screenwidth()
+    s_height = root.winfo_screenheight()
+    root.geometry(f"{s_width}x{s_width}")
+    center_window(root, s_width, s_height)
 
     # Setting up the main window
     root.protocol("WM_DELETE_WINDOW", on_closing)
@@ -340,7 +354,8 @@ def start_up():
 
 
 def on_closing():
-    audio_loop.stop()
+    audio.stop = True
+    simpleaudio.stop_all()
     root.destroy()
 
 
@@ -371,24 +386,24 @@ def new_game(width, height, tile_size, number_mines):
         tile_size=tile_size,
         number_mines=number_mines
     )
-    game.pack()
+    game.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 
 
 if __name__ == "__main__":
-    multiprocessing.freeze_support()  # Fix for freeze packaging (pyinstaller) support
+    # init the main window
+    root = tk.Tk()
 
-    root = tk.Tk()  # init the main window
+    # import and place background image
+    bg_img = ImageTk.PhotoImage(Image.open('textures/background.png'))
+    background_label = tk.Label(root, image=bg_img)
+    background_label.place(x=0, y=0, relwidth=1, relheight=1)
 
     start_up()  # booting up
-    audio_loop = AudioGameTheme()  # start audio loop
-
-    root.title("Main Menu")
-    # centrer et redimensioner la fenetre
-    root.geometry("300x500")
-    center_window(root, 300, 500)
+    audio = GameAudio()  # start audio loop
 
     # display the menu
+    root.title("Main Menu")
     main_menu = MainMenu(root)
-    main_menu.pack()
+    main_menu.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 
     root.mainloop()

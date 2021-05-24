@@ -2,4 +2,4 @@ tk
 Pillow
 pyinstaller
 ttkthemes
-playsound
+simpleaudio
