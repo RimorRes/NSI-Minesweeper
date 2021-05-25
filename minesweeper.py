@@ -13,7 +13,7 @@ from random import randint
 import time
 from tkinter import messagebox
 
-import simpleaudio
+import playsound
 from PIL import ImageTk, Image
 from ttkthemes import ThemedStyle
 
@@ -52,14 +52,7 @@ def center_window(window, width, height):
     window.geometry(f'+{int(x)}+{int(y)}')  # centrer la fenetre
 
 
-def hide_frame(frame, sub_canvases=None):
-    for widget in frame.winfo_children():
-        widget.destroy()  # on supprime les enfants du cadre
-
-    if sub_canvases:
-        for canvas in sub_canvases:  # si le cadre a des canevas, on supprime tout ce qu'il y a dedans
-            canvas.delete("all")
-
+def hide_frame(frame):
     frame.place_forget()  # pour cacher le cadre
     frame.pack_forget()  # pour cacher le cadre
     frame.grid_forget()  # pour cacher le cadre
@@ -70,35 +63,22 @@ class GameAudio:  # Controleur pour la musique
     def __init__(self):
         self.stop = False
 
-        self.main_theme = simpleaudio.WaveObject.from_wave_file('audio/Waypoint_K.wav')
-        self.sonar_ping = simpleaudio.WaveObject.from_wave_file('audio/sonar.wav')
-        self.explosion = simpleaudio.WaveObject.from_wave_file('audio/explosion.wav')
-
-        theme_thread = threading.Thread(target=self.theme_loop)
-        theme_thread.name = "ThemeSFXThread"
-        theme_thread.start()
-
-        sonar_thread = threading.Thread(target=self.sonar_sfx)
-        sonar_thread.name = "SonarSFXThread"
-        sonar_thread.start()
-
-    def theme_loop(self):
-        while not self.stop:
-            play = self.main_theme.play()
-            play.wait_done()
+        s_thread = threading.Thread(target=self.sonar_sfx)
+        s_thread.name = "SonarSFXThread"
+        s_thread.start()
 
     def sonar_sfx(self):
         while not self.stop:
-            if randint(1, 20) == 1:
-                play = self.sonar_ping.play()
-                play.wait_done()
+            if randint(1, 200) == 1:
+                playsound.playsound('audio/sonar.wav')
             else:
-                time.sleep(1)
+                time.sleep(0.1)
 
-    def explosion_sfx(self):
-        explo_thread = threading.Thread(target=self.explosion.play)
-        explo_thread.name = 'ExplosionSFXThread'
-        explo_thread.start()
+    @staticmethod
+    def explosion_sfx():
+        e_thread = threading.Thread(target=playsound.playsound, args=('audio/explosion.wav',))
+        e_thread.name = 'ExplosionSFXThread'
+        e_thread.start()
 
 
 class SplashScreen(tk.Toplevel):  # Ecran de chargement
@@ -155,19 +135,19 @@ class GameBoard(tk.Frame):
         self.tripped_mine = []  # the mine the player exploded
 
         # Setting up the HUD on the top
-        self.mine_label = tk.Label(self, text=f'Mines:{self.number_mines}') # display the number of mines
+        self.mine_label = tk.Label(self, text=f'Mines:{self.number_mines}')  # display the number of mines
         self.mine_label.grid(row=0, column=0)
 
         self.restart_button = ttk.Button(self, text='Restart', command=self.restart)  # button for reset
         self.restart_button.grid(row=0, column=1)
 
-        self.menu_button = ttk.Button(self, text='Menu', command=lambda: print('Lol. WIP'))  # return to menu
+        self.menu_button = ttk.Button(self, text='Menu', command=show_menu)  # return to menu
         self.menu_button.grid(row=2, column=1)
 
         self.stopwatch = 0  # time spent
-        self.clock_label = tk.Label(self, text='') # to display the time spent
+        self.clock_label = tk.Label(self, text='')  # to display the time spent
         self.clock_label.grid(row=0, column=2)
-        self.update_clock() # update the clock
+        self.update_clock()  # update the clock
 
         # Setting up the canvas
         self.canvas = tk.Canvas(
@@ -193,14 +173,10 @@ class GameBoard(tk.Frame):
         self.init_grid()
 
     def update_clock(self):
-      t = round(self.stopwatch, 1)
-      self.clock_label.configure(text=f'Time: {t}')
-      self.stopwatch += 0.1
-      self.clock_label.after(100, self.update_clock)
-
-    def update_points(self):
-      self.point_label.configure(text=self.points)
-      self.point_label.after(100, self.update_points)
+        t = round(self.stopwatch, 1)
+        self.clock_label.configure(text=f'Time: {t}')
+        self.stopwatch += 0.1
+        self.clock_label.after(100, self.update_clock)
 
     def handle_left_click(self, event):
         x = event.x // self.tile_size
@@ -333,11 +309,11 @@ class MainMenu(tk.Frame):
         self.display_menu_content()
 
     def display_menu_content(self):
-        play_label = tk.Label(self, text="Play", fg='green', font=('Terminal', 36, 'bold'))
+        play_label = tk.Label(self, text="Minesweeper", fg='#018a81', font=('Consolas', 36, 'bold'))
         play_label.grid(padx=20, pady=20)
 
         # Defining the buttons and labels
-        diff = tk.Label(self, text="Difficulty", font=('Terminal', 16))
+        diff = tk.Label(self, text="Difficulty", font=16)
         diff.grid(pady=5)
 
         easy = ttk.Button(self, text="Easy", command=lambda: set_difficulty("easy"))  # Easy mode button
@@ -383,7 +359,6 @@ def start_up():
 
 def on_closing():
     audio.stop = True
-    simpleaudio.stop_all()
     root.destroy()
 
 
@@ -406,7 +381,7 @@ def new_game(width, height, tile_size, number_mines):
     hide_frame(main_menu)  # hide the menu frame
 
     root.title("Minesweeper")
-
+    global game  # TODO: ugly ass cod. fix this
     game = GameBoard(  # create a new game with the specified settings
         master=root,
         width=width,
@@ -417,21 +392,28 @@ def new_game(width, height, tile_size, number_mines):
     game.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 
 
+def show_menu():
+    hide_frame(game)
+
+    root.title("Main Menu")
+    main_menu.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
+
+
 if __name__ == "__main__":
     # init the main window
     root = tk.Tk()
-
     # import and place background image
     bg_img = ImageTk.PhotoImage(Image.open('textures/background.png'))
     background_label = tk.Label(root, image=bg_img)
     background_label.place(x=0, y=0, relwidth=1, relheight=1)
 
-    start_up()  # booting up
-    audio = GameAudio()  # start audio loop
-
-    # display the menu
-    root.title("Main Menu")
+    # global objects
+    audio = GameAudio()
     main_menu = MainMenu(root)
-    main_menu.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
+    game = tk.Frame(root)
+
+    start_up()  # booting up
+
+    show_menu()
 
     root.mainloop()
