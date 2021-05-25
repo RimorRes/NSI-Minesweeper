@@ -10,7 +10,7 @@ import threading
 import tkinter as tk
 import tkinter.ttk as ttk
 from random import randint
-from time import sleep
+import time
 from tkinter import messagebox
 
 import simpleaudio
@@ -93,7 +93,7 @@ class GameAudio:  # Controleur pour la musique
                 play = self.sonar_ping.play()
                 play.wait_done()
             else:
-                sleep(1)
+                time.sleep(1)
 
     def explosion_sfx(self):
         explo_thread = threading.Thread(target=self.explosion.play)
@@ -146,13 +146,28 @@ class GameBoard(tk.Frame):
         self.tile_size = tile_size  # tile dimensions
         self.number_mines = number_mines
         self.move_counter = 0
-
+        
         # Setting up tile states
         self.tile_states = [[0] * self.width for _ in range(self.height)]  # matrix for number of adjacent mines
         self.mine_positions = []  # list of mine positions
         self.flag_positions = []  # list of flag positions
         self.discovered_tiles = []  # list of discovered tiles
         self.tripped_mine = []  # the mine the player exploded
+
+        # Setting up the HUD on the top
+        self.mine_label = tk.Label(self, text=f'Mines:{self.number_mines}') # display the number of mines
+        self.mine_label.grid(row=0, column=0)
+
+        self.restart_button = ttk.Button(self, text='Restart', command=self.restart)  # button for reset
+        self.restart_button.grid(row=0, column=1)
+
+        self.menu_button = ttk.Button(self, text='Menu', command=lambda: print('Lol. WIP'))  # return to menu
+        self.menu_button.grid(row=2, column=1)
+
+        self.stopwatch = 0  # time spent
+        self.clock_label = tk.Label(self, text='') # to display the time spent
+        self.clock_label.grid(row=0, column=2)
+        self.update_clock() # update the clock
 
         # Setting up the canvas
         self.canvas = tk.Canvas(
@@ -163,7 +178,7 @@ class GameBoard(tk.Frame):
         )
         self.canvas.bind('<Button-1>', self.handle_left_click)  # Binding clicks to functions
         self.canvas.bind('<Button-3>', self.handle_right_click)
-        self.canvas.pack()
+        self.canvas.grid(row=1, columnspan=3)
 
         # Handling game icon/images
         self.tile_images = {}
@@ -176,6 +191,16 @@ class GameBoard(tk.Frame):
 
         # Setting up the starting grid
         self.init_grid()
+
+    def update_clock(self):
+      t = round(self.stopwatch, 1)
+      self.clock_label.configure(text=f'Time: {t}')
+      self.stopwatch += 0.1
+      self.clock_label.after(100, self.update_clock)
+
+    def update_points(self):
+      self.point_label.configure(text=self.points)
+      self.point_label.after(100, self.update_points)
 
     def handle_left_click(self, event):
         x = event.x // self.tile_size
@@ -239,6 +264,7 @@ class GameBoard(tk.Frame):
 
     def restart(self):
         # Resetting variables
+        self.stopwatch = 0  # reset time spent
         self.move_counter = 0
         self.tile_states = [[0] * self.width for _ in range(self.height)]  # matrix for number of adjacent mines
         self.mine_positions = []
@@ -307,8 +333,11 @@ class MainMenu(tk.Frame):
         self.display_menu_content()
 
     def display_menu_content(self):
+        play_label = tk.Label(self, text="Play", fg='green', font=('Terminal', 36, 'bold'))
+        play_label.grid(padx=20, pady=20)
+
         # Defining the buttons and labels
-        diff = ttk.Label(self, text="Difficulty")
+        diff = tk.Label(self, text="Difficulty", font=('Terminal', 16))
         diff.grid(pady=5)
 
         easy = ttk.Button(self, text="Easy", command=lambda: set_difficulty("easy"))  # Easy mode button
@@ -320,9 +349,9 @@ class MainMenu(tk.Frame):
 
         # Custom difficulty
         # TODO: finish the custom difficulty
-        label = ttk.Label(self, text="Custom difficulty")
+        label = tk.Label(self, text="Custom difficulty")
         label.grid(pady=20)
-        number = ttk.Label(self, text="Enter a Number")
+        number = tk.Label(self, text="Enter a Number between 10 and 100")
         number.grid()
         box = ttk.Entry(self)
         box.grid(pady=10)
