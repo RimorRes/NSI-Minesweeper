@@ -283,8 +283,7 @@ class GameBoard(tk.Frame):
                 for vert in range(-1, 2):
                     for horz in range(-1, 2):
                         if (0 <= x + horz < self.width) and (0 <= y + vert < self.height):  # verif coordonnees valides
-                            if [x + horz, y + vert] not in self.discovered_tiles:  # verif case pas deja decouverte
-                                self.reveal_tiles(x + horz, y + vert)  # on libere les cases dans un rayon de 1
+                            self.reveal_tiles(x + horz, y + vert)  # on libere les cases dans un rayon de 1
 
         return
 
